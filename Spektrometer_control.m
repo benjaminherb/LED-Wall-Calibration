@@ -3,6 +3,8 @@
 %% Seriellen Port aktivieren
 % ein serielles Objekt wird angelegt. Über serialportlist konnte der
 % Anschluss identifiziert werden
+% Mac: SM = serialport("/dev/cu.usbmodem11301",115200);
+
 SM = serialport("/dev/cu.usbmodem11301",115200);
 
 %Damit beim auslesen der Daten nicht vor Abschluss der Messung geendet
