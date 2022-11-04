@@ -16,6 +16,8 @@ OUTPUT_DIR = "./out";
 
 %% Generate Primaries
 
+PAD_WIDTH = PAD_WIDTH - WIDTH;
+PAD_HEIGHT = PAD_HEIGHT - HEIGHT;
 PRIMARIES_DIR = OUTPUT_DIR + "/PRIMARIES/";
 
 if not(isfolder(PRIMARIES_DIR))
