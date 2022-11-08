@@ -6,21 +6,21 @@
 
 %% INPUT
 
-GAMMA = 2.0;
+GAMMA = 1.0;
 OUTPUT_DIR = "./out";
 
-WIDTH = 384;
-HEIGHT = 256;
+WIDTH = 768;
+HEIGHT = 768;
 
 % Pad is used if the gradient needs to be included in a bigger frame
 % (mostly for the test panel)
 % set to the same as the WIDTH/HEIGHT if not needed
-PAD_WIDTH = 1920; 
-PAD_HEIGHT = 1080;
+PAD_WIDTH = 768; 
+PAD_HEIGHT = 768;
 
-STEP_WIDTHS = [2, 4, 8, 16, 32, 64, 128];
+STEP_WIDTHS = [1,2, 4, 8, 16, 32, 64, 128];
 
-%% PREPERATION
+%% PREPARATION
 
 GAMMA_STR = string(GAMMA*10); % used for filenames/start of gamdat file
 PAD_WIDTH = PAD_WIDTH - WIDTH;
@@ -46,7 +46,7 @@ eight_bit_gamma = eight_bit_lin .^ GAMMA;
 for n = 1:15
     scaled_vector = (eight_bit_gamma .* 2^n) + 2^n;
     scaled_vector = uint16(scaled_vector);
-    output_file = fopen(LUT_DIR + "LUT_" + scaled_vector(1) + "_" + scaled_vector(256) + "_GAMMA_" + GAMMA_STR +  ".gamdat", 'w');
+    output_file = fopen(LUT_DIR + "LUT_" + "GAMMA_" + GAMMA_STR + "_" + scaled_vector(1) + "_" + scaled_vector(256)  +  ".gamdat", 'w');
     fprintf(output_file, GAMMA_STR + '*0#255#0#65535#');
     
     first_number = 1; % Avoid the comma at the eof
@@ -71,10 +71,11 @@ for step_width = STEP_WIDTHS
     step_count = floor(WIDTH / step_width);
     img = zeros(HEIGHT, WIDTH);
     for step = 1:step_count-1
-        value = (1/step_count) * step;
+        % value = (1/step_count) * step;
+        value = step/255;
         img(:, step*step_width:(step+1)*step_width) = value;
     end
-    output_image = GRAD_DIR + "GRADIENT_" + step_width + "_" + WIDTH + "_" + HEIGHT + ".jpg";
+    output_image = GRAD_DIR + "GRADIENT_"  + WIDTH + "_" + HEIGHT + "_" + step_width + ".png";
     img = padarray(img, [PAD_HEIGHT, PAD_WIDTH], 0, 'post');
     imwrite(img, output_image);   
 end
