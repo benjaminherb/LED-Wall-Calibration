@@ -1,22 +1,38 @@
 %% USER INPUT
 
-OUT_DIR = "./out/";
+DEVICE = "/dev/ttyACM0"; % check with 'serialportlist'
 MEASUREMENT_LABELS = ["RED", "GREEN", "BLUE"];
+OUTPUT_DIR = "./out/";
 
 %% PREREQUISITES
 
-MES_DIR = OUTPUT_DIR + "/MEASUREMENTS/";
+MES_DIR = OUTPUT_DIR + "MEASUREMENTS/";
 if not(isfolder(MES_DIR))
     mkdir(MES_DIR)
 end
 
 %% SERIAL PORT 
+try
+    % may need privilidged execution
+    SM = serialport(DEVICE, 115200);
 
-% check with 'serialportlist', may need privilidged execution
-SM = serialport("/dev/ttyACM0", 115200);
+    % increase timeout, to avoid stopping the readout before the measurement ends
+    SM.Timeout = 30;
 
-% increase timeout, to avoid stopping the readout before the measurement ends
-SM.Timeout = 30; 
+catch exception
+    switch exception.identifier
+        case 'serialport:serialport:ConnectionFailed'
+            disp("CONNECTION FAILED");
+            disp(exception.message);
+            disp("Maybe try different device (check with 'serialportlist')?");
+            return;
+        otherwise
+            disp("UNKNOWN EXCEPTION");
+            disp(exception.message);
+            return;
+    end
+end
+
 
 %% REMOTE MODE
 
@@ -34,13 +50,14 @@ measure = zeros(17,201);
 
 %% MEASUREMENTS
 
-measurements = NaN(201:lenght(MEASUREMENT_LABELS));
+measurements = NaN(201:length(MEASUREMENT_LABELS));
 
 
-for i=1:length(measurements)
+for i=1:length(MEASUREMENT_LABELS)
     
-    disp("Start measurement: " + MEASUREMENT_LABELS(i) + "?");
+    disp("Start measurement " + MEASUREMENT_LABELS(i) + "?");
     pause; % wait for user input
+    disp("Starting measurement in 5 seconds");
     pause(5); % wait 5 seconds before starting
     
     % Command "M5" returns wavelength and spectral power at each wavelength 
