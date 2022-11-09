@@ -12,7 +12,7 @@ WIDTH = 384;
 HEIGHT = 256;
 PAD_WIDTH = 1920; 
 PAD_HEIGHT = 1080;
-OUTPUT_DIR = "./out";
+OUTPUT_DIR = "../output";
 
 %% Generate Primaries
 

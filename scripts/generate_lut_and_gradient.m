@@ -7,7 +7,7 @@
 %% INPUT
 
 GAMMA = 1.0;
-OUTPUT_DIR = "./out";
+OUTPUT_DIR = "../output";
 
 WIDTH = 768;
 HEIGHT = 768;
