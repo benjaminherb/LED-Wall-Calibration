@@ -1,7 +1,7 @@
 %% USER INPUT
 
 DEVICE = "/dev/ttyACM0"; % check with 'serialportlist'
-MEASUREMENT_LABELS = ["RED", "GREEN", "BLUE"];
+MEASUREMENT_LABELS = ["RED", "GREEN", "BLUE"]; % list length = amount of measurements
 OUTPUT_DIR = "./out/";
 
 %% PREREQUISITES
@@ -19,15 +19,15 @@ try
     % increase timeout, to avoid stopping the readout before the measurement ends
     SM.Timeout = 30;
 
-catch exception
+catch
     switch exception.identifier
         case 'serialport:serialport:ConnectionFailed'
             disp("CONNECTION FAILED");
             disp(exception.message);
-            disp("Maybe try different device (check with 'serialportlist')?");
+            disp("You can check connected devices with 'serialportlist'");
             return;
         otherwise
-            disp("UNKNOWN EXCEPTION");
+            disp("UNKNOWN EXCEPTION (" + connection.identifier + ")");
             disp(exception.message);
             return;
     end
@@ -36,7 +36,7 @@ end
 
 %% REMOTE MODE
 
-% commands are sent as single chars
+% entering remote mode, commands have to be sent as single chars
 write(SM, 'P',"uint8");
 write(SM, 'H',"uint8");
 write(SM, 'O',"uint8");
@@ -45,14 +45,10 @@ write(SM, 'O',"uint8");
 
 disp("Remote mode active...")
 
-measureIndex = 1;
-measure = zeros(17,201);
-
 %% MEASUREMENTS
 
 measurements = NaN(201:length(MEASUREMENT_LABELS));
-
-
+    
 for i=1:length(MEASUREMENT_LABELS)
     
     disp("Start measurement " + MEASUREMENT_LABELS(i) + "?");

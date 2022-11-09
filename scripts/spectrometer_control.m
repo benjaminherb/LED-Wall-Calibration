@@ -1,11 +1,13 @@
 % list = serialportlist;
 
+OUTPUT_DIR = "./out";
+
 %% Seriellen Port aktivieren
 % ein serielles Objekt wird angelegt. Über serialportlist konnte der
 % Anschluss identifiziert werden
 % Mac: SM = serialport("/dev/cu.usbmodem11301",115200);
 
-SM = serialport("/dev/cu.usbmodem11301",115200);
+SM = serialport("/dev/ttyACM0",115200);
 
 %Damit beim auslesen der Daten nicht vor Abschluss der Messung geendet
 %wird, muss das Attribut Timeout auf eine längere Zeit gesetzt werden (30
@@ -52,8 +54,8 @@ readline(SM) %erster Wert wird verworfen
 %Mit der for-schleife werden nun alle werte nach einander abgefragt und in
 %mit strsplit auf die richtigen Variablen aufgeteilt.
 for i=1:1:201
-    str=strsplit(readline(SM),',')
-    str
+    str = strsplit(readline(SM),',');
+    str;
     
     refWfl(i,1) = str2num(str(1));
 mySPD(i,1) = str2num(str(2));
@@ -74,7 +76,17 @@ xlim([380,720])
 
 measure(measureIndex,:) = mySPD;
  measureIndex = measureIndex+1;
- 
+%% Write to file
+%MES_DIR = OUTPUT_DIR + "/MEASUREMENTS/";
+%if not(isfolder(MES_DIR))
+%    mkdir(MES_DIR)
+%end
+
+%output_file = fopen(MES_DIR + 'MEASUREMENTS_RED.csv', 'w');
+    
+%for i=1:1:201
+%    fprintf(output_file, string(refWfl(i)) + ',' + string(mySPD(i)) + '\n\r');
+%end
 
 
 %% Einzelne Werte ausgeben 
@@ -90,10 +102,12 @@ xlim([380,720])
 
 hold off
 
+
+refWfl;
 %% Remote Mode verlassen und Port schließen
 write(SM, 'Q',"uint8");
 
-clear("CU");
+clear("");
 
 
 
