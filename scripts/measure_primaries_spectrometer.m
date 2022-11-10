@@ -1,12 +1,13 @@
 %% USER INPUT
 
+% Mac: DEVICE = "/dev/cu.usbmodem11301";
 DEVICE = "/dev/ttyACM0"; % check with 'serialportlist'
 MEASUREMENT_LABELS = ["WHITE", "RED", "GREEN", "BLUE"]; % list length = amount of measurements
 OUTPUT_DIR = "../";
 
 %% PREREQUISITES
 
-MES_DIR = OUTPUT_DIR + "MEASUREMENTS/";
+MES_DIR = OUTPUT_DIR + "measurements/";
 if not(isfolder(MES_DIR))
     mkdir(MES_DIR)
 end
