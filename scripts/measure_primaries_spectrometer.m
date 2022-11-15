@@ -82,6 +82,17 @@ for m=1:length(MEASUREMENT_LABELS)
     Y = str2num(str(4));
     Z = str2num(str(5));
     
+    % Measuring CIE uv
+    disp("Measuring uv");
+    write(SM, 'M',"uint8");
+    write(SM, 32',"uint8");
+    write(SM, char(13),"uint8"); % = [CR] ("newline") to end the command
+    
+    str = strsplit(readline(SM),',');
+    disp(str);
+    u = str2num(str(3));
+    v = str2num(str(4));
+    
     % Command "M5" returns wavelength and spectral power at each wavelength 
     % (PR670 Manual p.125)
     disp("Measuring Spectral Power Distribution");
@@ -109,7 +120,10 @@ for m=1:length(MEASUREMENT_LABELS)
     fprintf(output_file, 'Z,' + string(Z) + '\n\r');
     fprintf(output_file, 'x,' + string(x) + '\n\r');
     fprintf(output_file, 'y,' + string(y) + '\n\r');
+    fprintf(output_file, 'u,' + string(u) + '\n\r');
+    fprintf(output_file, 'v,' + string(v) + '\n\r');
 
+    
     for k=1:1:201
         fprintf(output_file, string(wavelengths(k)) + ',' + string(spectralpower(k)) + '\n\r');
     end
