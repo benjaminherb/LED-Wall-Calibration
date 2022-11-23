@@ -1,11 +1,12 @@
 %% USER CONFIG
 
 conf.port = "/dev/ttyACM0"; % used to connect to spectrometer (serialportlist)
-conf.command = "M1";
+conf.command = "all"; % Options: "XYZ", "Yxy", "Yuv", "spectral", "all"
 conf.values = 0:1:255;
-% config.values = [cat(3,255,0,0), cat(3,0,255,0), cat(3,0,0,255)];
+conf.values = [cat(3,255,0,0), cat(3,0,255,0), cat(3,0,0,255)];
+% conf.values = ["RED", "GREEN", "BLUE"];
 
-conf.show_images = true; % show the values as an fullscreen image
+conf.show_images = false; % show the values as an fullscreen image
 conf.width = 1920;
 conf.height = 1080;
 conf.file_name = "reference_curve"; % appended to filename
@@ -25,16 +26,9 @@ if ~spectro.is_connected()
     return
 end
 
-% create csv header
-value_names = spectro.get_command_values(conf.command);
-header = "value";
-for v = value_names
-    header = header + "," + v;
-end
-
 %% MEASUREMENT
 
-if config.show_image
+if conf.show_images
     % fullscreen figure
     fig = figure('Name', 'TEST', 'MenuBar', 'none', ...
         'WindowState', 'fullscreen', 'ToolBar', 'none');
@@ -46,39 +40,43 @@ if config.show_image
     pause;
 end
 
-output_file = fopen( ...
-    conf.output_dir + datestr(datetime,'yyyymmdd_HHMMss') + "_" ...
-    + conf.file_name + ".csv", 'w');
-
-measurements = NaN(length(value_names) + 1, length(conf.values));
+clear("measurements")
 
 for i = 1:length(conf.values)
     
-    if conf.show_image
+    if conf.show_images
         img = repmat(conf.values(:,i,:) ./ 255, conf.height, conf.width);
         imshow(img);
+        try
+            fprintf("\nStarting measurement (" + string(conf.values(:,i,:)) + ")\n");
+        catch exception % workaround pls fix
+            fprintf("\nStarting measurement (" + i +")\n");
+        end
     else
-        disp("Start next measurement? Value: " + string(conf.values(:,i,:)));
+        try
+            fprintf("\nStart next measurement (" + string(conf.values(:,i,:)) + ")?\n");
+        catch exception
+            fprintf("\nStarting measurement (" + i +")\n");
+        end
         pause;
     end
     
-    result = spectro.command(conf.command);
-    result = strsplit(result,',');
-    
-    measurements(:,i) = result;
-    
-    csv_row = string(conf.values(:,i,1));
-    for r = result
-        csv_row = csv_row + ',' + r;
-    end
-    csv_row = csv_row + '\n';
-    fprintf(output_file, csv_row);
+    current_measurement = spectro.measure(conf.command);
+    current_measurement.measurement = conf.values(:,i,:);
+    measurements(i) = current_measurement;
 end
 
-if conf.show_image
-    fig.close();
+if conf.show_images
+    close(fig);
 end
 
 %% END
+output_file = fopen( ...
+    conf.output_dir + datestr(datetime,'yyyymmdd_HHMMss') + "_" ...
+    + conf.file_name + ".json", 'w');
+
+
+fprintf(output_file, jsonencode(measurements, 'PrettyPrint', true));
+
 % spectro.quit_remote_mode();
 clear("spectro");
