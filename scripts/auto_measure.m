@@ -1,72 +1,84 @@
-%% WIE FARBEN REPRÄSENTIEREN? [1,0,0], cat(3,1,0,0), cell array {[1 0 0], ...} ...
+%% USER CONFIG
 
-% CONFIG
-HEIGHT = 1080;
-WIDTH = 1920;
-OUTPUT_DIR = "../measurements/";
-PORT = "/dev/ttyACM0"; % check with 'serialportlist'
-NAME = "CURVE";  % appended to the folder name
+conf.port = "/dev/ttyACM0"; % used to connect to spectrometer (serialportlist)
+conf.command = "M1";
+conf.values = 0:1:255;
+% config.values = [cat(3,255,0,0), cat(3,0,255,0), cat(3,0,0,255)];
 
-GAMMA = 2.2;
-% GREY VALUES
-VALUES = 0:8:255;
+conf.show_images = true; % show the values as an fullscreen image
+conf.width = 1920;
+conf.height = 1080;
+conf.file_name = "reference_curve"; % appended to filename
+conf.output_dir = "../measurements/auto_measure/";
 
-% PRIMARIES
-% VALUES = [cat(3,255,0,0), cat(3,0,255,0), cat(3,0,0,255)];
+%% SETUP
 
-
-%% PREP
 addpath("../utils/")
 
-MES_DIR = OUTPUT_DIR + "auto_measure/" +  datestr(datetime,'yyyymmdd_HHMMss_' + NAME);
-if not(isfolder(MES_DIR))
-    mkdir(MES_DIR)
+if not(isfolder(conf.output_dir))
+    mkdir(conf.output_dir)
+end
+
+% establish connection to spectrometer
+spectro = Spectrometer(conf.port);
+if ~spectro.is_connected()
+    return
+end
+
+% create csv header
+value_names = spectro.get_command_values(conf.command);
+header = "value";
+for v = value_names
+    header = header + "," + v;
 end
 
 %% MEASUREMENT
 
-fig = figure('Name', 'TEST', 'MenuBar', 'none', 'WindowState', 'fullscreen', 'ToolBar', 'none');
-img_txt = imread('../res/user_info.png');
-img_txt = im2double(img_txt .* 255);
-img = pad_image_to_size(img_txt, HEIGHT, WIDTH, 1);
-img = cat(3, img,img,img); % create RGB image for more versitility
-set(gca, 'Position', [0 0 1 1]);
-imshow(img);
-
-spectro = Spectrometer(PORT);
-spectro.enter_remote_mode()
-
-imshow(img);
-pause;
-
-output_file = fopen(MES_DIR + 'MEASUREMENT.csv', 'w');
-fprintf(output_file, 'VALUE,X,Y,Z\n\r');
-measurements = NaN(3, length(VALUES));
-    
-for i = 1:length(VALUES)
-    
-    img = repmat(VALUES(:,i,:) ./ 255, HEIGHT, WIDTH);
+if config.show_image
+    % fullscreen figure
+    fig = figure('Name', 'TEST', 'MenuBar', 'none', ...
+        'WindowState', 'fullscreen', 'ToolBar', 'none');
+    img_txt = imread('../res/user_info.png');
+    img_txt = im2double(img_txt .* 255);
+    img = pad_image_to_size(img_txt, conf.height, conf.width, 1);
+    set(gca, 'Position', [0 0 1 1]);
     imshow(img);
-    result = spectro.command("M2");
-    result = strsplit(result,',');
-    X = str2num(result(3));
-    Y = str2num(result(4));
-    Z = str2num(result(5));    
-    measurements(i,:) = [X Y Z];
-    fprintf(output_file, string(VALUES(:,i,1)) + ',' + string(X) + ',' + string(Y) + ',' + string(Z) + ','  + '\n\r');
-
+    pause;
 end
 
-spectro.quit_remote_mode();
+output_file = fopen( ...
+    conf.output_dir + datestr(datetime,'yyyymmdd_HHMMss') + "_" ...
+    + conf.file_name + ".csv", 'w');
+
+measurements = NaN(length(value_names) + 1, length(conf.values));
+
+for i = 1:length(conf.values)
+    
+    if conf.show_image
+        img = repmat(conf.values(:,i,:) ./ 255, conf.height, conf.width);
+        imshow(img);
+    else
+        disp("Start next measurement? Value: " + string(conf.values(:,i,:)));
+        pause;
+    end
+    
+    result = spectro.command(conf.command);
+    result = strsplit(result,',');
+    
+    measurements(:,i) = result;
+    
+    csv_row = string(conf.values(:,i,1));
+    for r = result
+        csv_row = csv_row + ',' + r;
+    end
+    csv_row = csv_row + '\n';
+    fprintf(output_file, csv_row);
+end
+
+if conf.show_image
+    fig.close();
+end
+
+%% END
+% spectro.quit_remote_mode();
 clear("spectro");
-
-%% EVALUATION
-fig = figure('Name', 'Gamma Curve compared to measured response curve');
-
-% MEASURED RESPONSE CURVE
-plot(VALUES ./ 255, measurements(:,2) ./ measurements(end,2), 'black'); % labels used for color
-hold on
-% REFERENCE GAMMA CURVE
-plot(VALUES ./255, (VALUES ./255) .^ GAMMA, 'red');
-
-
