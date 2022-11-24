@@ -40,9 +40,11 @@ classdef Spectrometer
             
             output = strings();
             output(end) = readline(obj.con);
+            pause(0.5); % otherwise some long outputs are skipped
             while obj.con.NumBytesAvailable > 0
                 output(end+1) = readline(obj.con);
             end
+            flush(obj.con);
         end
         
         function enter_remote_mode(obj)
@@ -97,8 +99,7 @@ classdef Spectrometer
                         'Y', str2double(out(4)), ...
                         'Z', str2double(out(5)));
                     fprintf("  X: " + result.X + "  Y: " + result.Y + "  Z: " + result.Z + "\n");
-                    
-                    
+                     
                 case "Yuv"
                     fprintf("Measuring CIE1976 u'v':");
                     out = obj.command(mode + "3");
@@ -110,7 +111,6 @@ classdef Spectrometer
                         'u', str2double(out(4)), ...
                         'v', str2double(out(5)));
                     fprintf("  Y: " + result.Y + "  u: " + result.u + "  v: " + result.v + "\n");
-
                     
                 case "spectral"
                     fprintf("Measuring Spectral Distribution:");
