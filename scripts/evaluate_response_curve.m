@@ -9,8 +9,8 @@ conf.gamma = 2.2;
 conf.bit_depth= 8;
 
 
-% PREPARATION
 
+% PREPARATION
 conf.value_length = 2 ^ conf.bit_depth;
 conf.max_value = conf.value_length - 1;
 
@@ -57,7 +57,7 @@ plot(values_absolute, reference_curve, 'black:' ...
 , values_absolute, response_curves_scaled(4,:), 'blue' ...
 );
 
-legend('gamma 2.2','white','red','green','blue');
+legend('gamma 2.2','white','red','green','blue', 'location', 'northwest');
 xlabel('Input Code Value [0-255]');
 ylabel('Measured Luminance Output [0-1]');
 xlim([0 255]);
@@ -72,8 +72,8 @@ plot(values_absolute, reference_curve, 'black:' ...
 , values_absolute, response_curves_scaled(4,:), 'blue' ...
 );
 
-legend('gamma 2.2','white','red','green','blue');
+legend('gamma 2.2','white','red','green','blue', 'location', 'northwest');
 xlabel('Input Code Value [0-255]');
 ylabel('Measured Luminance Output [0-1]');
-xlim([240 255]);
-ylim([0.95 1.05]);
+xlim([245 255]);
+ylim([0.95 1.01]);
