@@ -3,13 +3,14 @@
 conf.port = "/dev/ttyACM0"; % used to connect to spectrometer (serialportlist)
 conf.command = "all"; % Options: "XYZ", "Yxy", "Yuv", "spectral", "all"
 conf.values = 0:1:255;
-conf.values = [cat(3,255,0,0), cat(3,0,255,0), cat(3,0,0,255)];
+conf.values = cat(3, zeros(1,256),zeros(1,256), 0:1:255);
+% conf.values = [cat(3,255,0,0), cat(3,0,255,0), cat(3,0,0,255)];
 % conf.values = ["RED", "GREEN", "BLUE"];
 
-conf.show_images = false; % show the values as an fullscreen image
+conf.show_images = true; % show the values as an fullscreen image
 conf.width = 1920;
 conf.height = 1080;
-conf.file_name = "reference_curve"; % appended to filename
+conf.file_name = "measurement_pc_response_curve_blue"; % appended to filename
 conf.output_dir = "../measurements/auto_measure/";
 
 %% SETUP
@@ -21,6 +22,7 @@ if not(isfolder(conf.output_dir))
 end
 
 % establish connection to spectrometer
+clear("spectro");
 spectro = Spectrometer(conf.port);
 if ~spectro.is_connected()
     return
@@ -42,6 +44,7 @@ end
 
 clear("measurements")
 
+pause(10);
 for i = 1:length(conf.values)
     
     if conf.show_images

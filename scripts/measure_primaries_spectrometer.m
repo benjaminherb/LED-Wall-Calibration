@@ -2,7 +2,7 @@
 
 % Mac: DEVICE = "/dev/cu.usbmodem11301";
 DEVICE = "/dev/ttyACM0"; % check with 'serialportlist'
-MEASUREMENT_LABELS = ["WHITE", "RED", "GREEN", "BLUE"]; % list length = amount of measurements
+MEASUREMENT_LABELS = ["WHITE_TEST", "RED_TEST", "GREEN_TEST", "BLUE_TEST"]; % list length = amount of measurements
 OUTPUT_DIR = "../";
 
 %% PREREQUISITES
@@ -56,8 +56,8 @@ for m=1:length(MEASUREMENT_LABELS)
     
     disp("Start measurement " + MEASUREMENT_LABELS(m) + "?");
     pause; % wait for user input
-    disp("Starting measurement in 5 seconds");
-    pause(5); % wait 5 seconds before starting
+    % disp("Starting measurement in 5 seconds");
+    % pause(5); % wait 5 seconds before starting
     
     % Measuring CIE 1931 xy
     disp("Measuring CIE 1931 xy");
@@ -85,7 +85,7 @@ for m=1:length(MEASUREMENT_LABELS)
     % Measuring CIE uv
     disp("Measuring uv");
     write(SM, 'M',"uint8");
-    write(SM, 32',"uint8");
+    write(SM, '2',"uint8");
     write(SM, char(13),"uint8"); % = [CR] ("newline") to end the command
     
     str = strsplit(readline(SM),',');

@@ -6,17 +6,17 @@
 
 %% INPUT
 
-GAMMA = 1.0;
+GAMMA = 2.2;
 OUTPUT_DIR = "../output";
 
-WIDTH = 768;
-HEIGHT = 768;
+WIDTH = 1920;
+HEIGHT = 1080;
 
 % Pad is used if the gradient needs to be included in a bigger frame
 % (mostly for the test panel)
 % set to the same as the WIDTH/HEIGHT if not needed
-PAD_WIDTH = 768; 
-PAD_HEIGHT = 768;
+PAD_WIDTH = 1920; 
+PAD_HEIGHT = 1080;
 
 STEP_WIDTHS = [1,2, 4, 8, 16, 32, 64, 128];
 

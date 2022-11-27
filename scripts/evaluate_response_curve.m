@@ -1,31 +1,51 @@
 %% USER CONFIG
 
-DATA_FILE="/home/ben/Code/LED-Wall-Calibration/measurements/auto_measure/TEST.csv";
-GAMMA = 2.2;
-FILE_NAME = "MY_NEWEST_LUT";
-OUTPUT_DIR = "../output/LUTS/";
+conf.data_dir ="../measurements/response_curve/";
+conf.gamma = 2.2;
 
 %% PREREQUISITES
 
-if not(isfolder(OUTPUT_DIR))
-    mkdir(OUTPUT_DIR)
+files = dir(conf.data_dir + "/*.json")';
+response_curves = NaN(256, length(files));
+for i = 1:1:length(files)
+    json_text = fileread(string(files(i).folder) + "/" + string(files(i).name));
+    data = jsondecode(json_text);
+    
+    for j = 1:1:length(data')
+        response_curves(j,i) = data(j).Yxy.Y;
+    end
 end
 
-TS_STR = datestr(datetime,'yyyymmdd_HHMMss_');
-data = readtable(DATA_FILE);
+%% PLOT
 
-% scaled to highest value = 1 and lowest value = 0
-measured_curve = (data.Y - data.Y(1)) ./ (data.Y(end)-data.Y(1));
-values = data.Value ./ 255;
-reference_curve = values .^ GAMMA;
+values = 0:1:255;
+scaled_values = values ./255;
+reference_curve = scaled_values .^ conf.gamma;
+
+figure();
+plot(values, reference_curve, 'cyan');
+hold on
+plot(values, response_curves(:,1) ./ response_curves(end, 1), 'black');
+plot(values, response_curves(:,2) ./ response_curves(end, 2), 'red');
+plot(values, response_curves(:,3) ./ response_curves(end, 3), 'green');
+plot(values, response_curves(:,4) ./ response_curves(end, 4), 'blue');
+hold off
+legend('reference','white','red','green','blue');
+%%
+
+
+
+
 
 fig_abs = figure('Name', 'Gamma Curve compared to measured response curve');
 
 % MEASURED RESPONSE CURVE (Scaled Y Values)
-plot(values, measured_curve, 'black'); % labels used for color
+plot(data.Value, measured_curve, 'black'); % labels used for color
 hold on
 % REFERENCE GAMMA CURVE
-plot(values, reference_curve, 'red');
+plot(data.Value, reference_curve, 'red');
+plot(data.Value, reference_26, 'green');
+
 
 %% DIFFERENCE
 
@@ -33,6 +53,13 @@ fig_dev = figure('Name', 'Measured deviation from reference gamma');
 plot(values, reference_curve - measured_curve);
 
 %% GENERATE SIMPLE OFFSET LUT
+
+
+if not(isfolder(OUTPUT_DIR))
+    mkdir(OUTPUT_DIR)
+end
+
+TS_STR = datestr(datetime,'yyyymmdd_HHMMss_');
 
 GAMMA_STR = string(GAMMA*10); % used for filenames/start of gamdat file
 

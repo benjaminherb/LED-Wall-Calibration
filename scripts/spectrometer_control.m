@@ -54,6 +54,7 @@ readline(SM) %erster Wert wird verworfen
 %Mit der for-schleife werden nun alle werte nach einander abgefragt und in
 %mit strsplit auf die richtigen Variablen aufgeteilt.
 for i=1:1:201
+    disp(i);
     str = strsplit(readline(SM),',');
     str;
     
