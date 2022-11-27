@@ -6,6 +6,8 @@ conf.values = 0:1:255;
 conf.values = cat(3, zeros(1,256),zeros(1,256), 0:1:255);
 % conf.values = [cat(3,255,0,0), cat(3,0,255,0), cat(3,0,0,255)];
 % conf.values = ["RED", "GREEN", "BLUE"];
+conf.values = get_black_to_white_test_values();
+
 
 conf.show_images = true; % show the values as an fullscreen image
 conf.width = 1920;
@@ -83,3 +85,16 @@ fprintf(output_file, jsonencode(measurements, 'PrettyPrint', true));
 
 % spectro.quit_remote_mode();
 clear("spectro");
+
+%% HELPER FUNCTIONS
+
+function values = get_black_to_white_test_values()
+values = NaN(1,0,3);
+for i=0:255/16:255; values = [values, cat(3,i,0,0)]; end
+for i=0:255/16:255; values = [values, cat(3,1,i,i)]; end
+for i=0:255/16:255; values = [values, cat(3,0,i,0)]; end
+for i=0:255/16:255; values = [values, cat(3,i,1,i)]; end
+for i=0:255/16:255; values = [values, cat(3,0,0,i)]; end
+for i=0:255/16:255; values = [values, cat(3,i,i,1)]; end
+for i=0:255/16:255; values = [values, cat(3,i,i,i)]; end
+end

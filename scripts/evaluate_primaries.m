@@ -61,6 +61,10 @@ plot([mean_wall.u.red, mean_wall.u.green, mean_wall.u.blue, mean_wall.u.red], ..
     [mean_wall.v.red, mean_wall.v.green, mean_wall.v.blue, mean_wall.v.red], ...
     'black');
 
+plot([mean_wall.u.red, mean_wall.u.green, mean_wall.u.blue, mean_wall.u.red], ...
+    [mean_wall.v.red, mean_wall.v.green, mean_wall.v.blue, mean_wall.v.red], ...
+    'black');
+
 hold off
 
 % BRIGHTNESS COMPARISON
