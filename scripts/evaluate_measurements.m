@@ -17,7 +17,7 @@ plot_Lab(data)
 nexttile()
 plot_Luv(data)
 
-
+ 
 function plot_Luv(data)
 reference_white = data.grey(end).XYZ;
 
