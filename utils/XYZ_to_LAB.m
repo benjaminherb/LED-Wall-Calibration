@@ -1,7 +1,7 @@
 function [L, a, b] = XYZ_to_LAB(X, Y, Z, Xw, Yw, Zw)
 
-kappa = 24389/27; % Actual CIE standard: 903.3
-epsilon = 216/24389; % Actual CIE standard: 0.008856
+kappa = 903.3; % Theoretical correct value: 24389/27
+epsilon = 0.008856; % Theoretical correct value: 216/24389
 
 xr = X / Xw;
 yr = Y / Yw;

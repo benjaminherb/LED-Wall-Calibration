@@ -34,6 +34,31 @@ end
 scatter3(values_lab(:,2), values_lab(:,3), values_lab(:, 1), 50, values_lab(:,4:6), '.');
 
 end
+
+
+
+function plot_space_CIELUV()
+% SRGB
+% Xw = 0.950;
+% Yw = 1.000;
+% Zw = 1.089;
+
+values = get_all_values(); % ALL the values
+[Xw, Yw, Zw] = xyY_to_XYZ(0.3127, 0.3290, 1.0000);
+values_luv = NaN(length(values), 6);
+for i = 1:1:length(values)
+    XYZ = RGB_to_XYZ(values(i,1),values(i,2), values(i,3), "srgb", "D65", "srgb");
+    [L,U,V] = XYZ_to_LUV(XYZ(1),XYZ(2), XYZ(3), Xw, Yw, Zw);
+    values_luv(i,1:3) = [L,U,V];
+    values_luv(i,4:6) = values(i,:);
+end
+
+scatter3(values_luv(:,2), values_luv(:,3), values_luv(:, 1), 50, values_luv(:,4:6), '.');
+
+end
+
+
+
 function plot_Luv(data)
 reference_white = data.grey(end).XYZ;
 
@@ -47,6 +72,7 @@ scatter3(wLuv(:,2), wLuv(:,3), wLuv(:, 1), 50, wLuv(:,4:6) ./255);
 scatter3(rLuv(:,2), rLuv(:,3), rLuv(:, 1), 50,rLuv(:,4:6)./255);
 scatter3(gLuv(:,2), gLuv(:,3), gLuv(:, 1), 50,gLuv(:,4:6)./255);
 scatter3(bLuv(:,2), bLuv(:,3), bLuv(:, 1), 50,bLuv(:,4:6)./255);
+plot_space_CIELUV();
 %plotChromaticity("ColorSpace","uv","View",3,"BrightnessThreshold",0)
 
 xlabel("u*");
@@ -66,7 +92,7 @@ r = NaN(length(data), 6);
 for i = 1:1:256
     
     % GET L*u*v*
-    [L, u, v] = XYZ_to_CIELUV(data(i).XYZ.X, data(i).XYZ.Y, data(i).XYZ.Z, ...
+    [L, u, v] = XYZ_to_LUV(data(i).XYZ.X, data(i).XYZ.Y, data(i).XYZ.Z, ...
         refWP.X,refWP.Z,refWP.Z);
     
     %u = data(i).Yuv.u; % u' w/o WP compensation
@@ -126,7 +152,7 @@ for i = 1:1:256
         name = name';
     end
     
-    [L, a, b] = XYZ_to_CIELAB(X, Y, Z, refWP.X, refWP.Y, refWP.Z);
+    [L, a, b] = XYZ_to_LAB(X, Y, Z, refWP.X, refWP.Y, refWP.Z);
     
     if data(i).Yxy.value == "-0008"
         L=0; a=0; b=0; name=[0,0,0];
