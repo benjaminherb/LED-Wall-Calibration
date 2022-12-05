@@ -1,4 +1,4 @@
-function [L,U,V] = XYZ_to_CIELUV(X,Y,Z, Xw,Yw,Zw)
+function [L,U,V] = XYZ_to_LUV(X,Y,Z, Xw,Yw,Zw)
 % https://en.wikipedia.org/wiki/CIELUV
 
 L = (29/3)^3 * Y/Yw *(Y / Yw <= (6/29)^3) ...

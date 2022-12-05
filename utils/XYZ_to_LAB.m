@@ -1,4 +1,4 @@
-function [L, a, b] = XYZ_to_CIELAB(X, Y, Z, Xw, Yw, Zw)
+function [L, a, b] = XYZ_to_LAB(X, Y, Z, Xw, Yw, Zw)
 
 kappa = 24389/27; % Actual CIE standard: 903.3
 epsilon = 216/24389; % Actual CIE standard: 0.008856
