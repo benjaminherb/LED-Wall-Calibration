@@ -42,8 +42,9 @@ function plot_space_CIELUV()
 % Xw = 0.950;
 % Yw = 1.000;
 % Zw = 1.089;
-
-values = get_all_values(); % ALL the values
+values = get_borders();
+% values = get_black_to_white_test_values();
+% values = get_all_values(); % ALL the values
 [Xw, Yw, Zw] = xyY_to_XYZ(0.3127, 0.3290, 1.0000);
 values_luv = NaN(length(values), 6);
 for i = 1:1:length(values)
@@ -72,7 +73,8 @@ scatter3(wLuv(:,2), wLuv(:,3), wLuv(:, 1), 50, wLuv(:,4:6) ./255);
 scatter3(rLuv(:,2), rLuv(:,3), rLuv(:, 1), 50,rLuv(:,4:6)./255);
 scatter3(gLuv(:,2), gLuv(:,3), gLuv(:, 1), 50,gLuv(:,4:6)./255);
 scatter3(bLuv(:,2), bLuv(:,3), bLuv(:, 1), 50,bLuv(:,4:6)./255);
-plot_space_CIELUV();
+%plot_space_CIELUV();
+plot_colorspace("srgb", "luv", "borders", 32, "scatter");
 %plotChromaticity("ColorSpace","uv","View",3,"BrightnessThreshold",0)
 
 xlabel("u*");
@@ -125,7 +127,9 @@ scatter3(wLab(:,2), wLab(:,3), wLab(:,1), 50, wLab(:,4:6)./255, 'filled');
 scatter3(rLab(:,2), rLab(:,3), rLab(:,1), 50, rLab(:,4:6)./255, 'filled');
 scatter3(gLab(:,2), gLab(:,3), gLab(:,1), 50, gLab(:,4:6)./255, 'filled');
 scatter3(bLab(:,2), bLab(:,3), bLab(:,1), 50, bLab(:,4:6)./255, 'filled');
-plot_space_CIELAB("srgb") 
+%plot_space_CIELAB("srgb")
+plot_colorspace("srgb", "lab", "borders", 32, "scatter");
+
 
 xlabel("a*");
 ylabel("b*");
@@ -176,6 +180,44 @@ for i=0:1:255; values = [values; [255,255,  i]]; end
 for i=0:1:255; values = [values; [  i,  i,255]]; end
 for i=0:1:255; values = [values; [  i,  i,  0]]; end
 for i=0:1:255; values = [values; [  i,  i,  i]]; end
+values = values ./ 255;
+end
+
+function values = get_mesh()
+steps = 32;
+i = 1;
+for r = 0:1/steps:1
+    for g = 0:1/steps:1
+        for b = 0:1/steps:1
+            if (r == 0 || r == 1 || g == 0 || g == 1 || b == 0 || b == 1)
+                values(i,: ) = [r, g, b];
+                i = i+1;
+            end
+        end
+    end
+end
+end
+
+function values = get_borders()
+
+steps = 32;
+i = 1;
+for r = 0:1/steps:1
+    for g = 0:1/steps:1
+        for b = 0:1/steps:1
+            if ...
+                    ((r == 0 || r == 1) && g == b) || ...
+                    ((g == 0 || g == 1) && r == b) || ...
+                    ((b == 0 || b == 1) && r == g) || ...
+                    ((r == 0 || r == 1) && (g == 0 || g == 1)) || ...
+                    ((r == 0 || r == 1) && (b == 0 || b == 1)) || ...
+                    ((b == 0 || b == 1) && (g == 0 || g == 1))
+                values(i,: ) = [r, g, b];
+                i = i+1;
+            end
+        end
+    end
+end
 end
 
 function values = get_all_values()

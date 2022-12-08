@@ -46,6 +46,16 @@ for i = 1:height(response_curves_scaled)
     response_curves_measured_diff(i,:) = response_curves_scaled(i,:) - reference_curve;
 end
 
+% RELATIVE DIV FOR MEASURED CURVES
+%reference_curve_scaled = NaN(size(response_curves_scaled));
+%for i = 1:height(response_curves_scaled)
+%    reference_curve_scaled(i,:) = reference_curve .* response_curves_absolute(:,end);
+%end
+%response_curves_relative_diff = NaN(size(response_curves_scaled));
+%for i = 1:height(response_curves_scaled)
+%    response_curves_relative_diff(i,:) = response_curves_absolute(i,:) ./ reference_curve_scaled(i,:);
+%end
+
 
 % SPLIT GREY CURVE TO RGB
 json_text = fileread(string(files(1).folder) + "/" + string(files(1).name));
@@ -141,10 +151,24 @@ xlabel('Input Code Value [0-255]');
 ylabel('Measured Luminance Difference Output cd/m²');
 xlim([0 255]);
 title('Difference Absolute');
+
+
+%plot(values_absolute, response_curves_relative_diff(1,:), 'black' ...
+%    , values_absolute, response_curves_relative_diff(2,:), 'red' ...
+%    , values_absolute, response_curves_relative_diff(3,:), 'green' ...
+%    , values_absolute, response_curves_relative_diff(4,:), 'blue' ...
+%);
+
+%legend('grey', 'red','green','blue', 'location', 'northwest');
+%xlabel('Input Code Value [0-255]');
+%ylabel('Measured Luminance relative Difference Output');
+%xlim([0 255]);
+%ylim([0 10]);
+%title('Difference Relative');
 %% HELPER FUNCTIONS
 
 function response_curves_rgb_split = split_to_rgb(data, colorspace)
-response_curves_rgb_split = NaN(4, length(data'));
+response_curves_rgb_sprlit = NaN(4, length(data'));
 
 ref_lum = data(end).Yxy.Y;
 
