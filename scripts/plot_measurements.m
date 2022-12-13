@@ -33,11 +33,11 @@ clear("json_text", "new_measurement", "i", "j");
 
 %%
 figure("Name", "LED Wall Measurements CIELUV and CIELAB", "NumberTitle", "off", "Position", [0 0 1200 500] );
-tiledlayout(1,2);
+tiledlayout(1,3);
 
 nexttile;
 hold on;
-
+grid on;
 values = convert_measurements(measurements, whitepoint, "luv");
 plot_values(values, conf.plot_type);
 plot_colorspace("visible-spectrum", "luv", "mesh", 32, "scatter");
@@ -46,10 +46,19 @@ hold off;
 
 nexttile;
 hold on;
+grid on;
 values = convert_measurements(measurements, whitepoint, "lab");
 plot_values(values, conf.plot_type);
 plot_colorspace("visible-spectrum", "lab", "mesh", 32, "scatter");
 title('CIELAB vs Visible Spectrum (1931 2° Standard Observer)');
+hold off;
+
+nexttile;
+hold on;
+grid on;
+values = convert_measurements(measurements, whitepoint, "PQuv");
+plot_values(values, conf.plot_type);
+%plot_colorspace("visible-spectrum", "lab", "mesh", 32, "scatter");
 hold off;
 
 
