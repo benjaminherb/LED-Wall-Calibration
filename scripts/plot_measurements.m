@@ -40,7 +40,7 @@ hold on;
 grid on;
 values = convert_measurements(measurements, whitepoint, "luv");
 plot_values(values, conf.plot_type);
-plot_colorspace("visible-spectrum", "luv", "mesh", 32, "scatter");
+plot_colorspace(get_values("cie1931"), "luv", "scatter");
 title('CIELUV vs Visible Spectrum (1931 2° Standard Observer)');
 hold off;
 
@@ -49,7 +49,7 @@ hold on;
 grid on;
 values = convert_measurements(measurements, whitepoint, "lab");
 plot_values(values, conf.plot_type);
-plot_colorspace("visible-spectrum", "lab", "mesh", 32, "scatter");
+plot_colorspace(get_values("cie1931"), "lab", "scatter");
 title('CIELAB vs Visible Spectrum (1931 2° Standard Observer)');
 hold off;
 
@@ -59,6 +59,13 @@ grid on;
 values = convert_measurements(measurements, whitepoint, "PQuv");
 plot_values(values, conf.plot_type);
 %plot_colorspace("visible-spectrum", "lab", "mesh", 32, "scatter");
+
+linear_ztick = [1, 3, 10, 30, 100, 300, 1000];
+ztick = NaN(size(linear_ztick));
+for i = 1:1:length(linear_ztick)
+    ztick(i) = linear_to_PQ(linear_ztick(i), whitepoint.XYZ.Y);
+end
+set(gca, 'ZTick', ztick, 'ZTickLabel', linear_ztick);
 hold off;
 
 
@@ -68,7 +75,7 @@ if type == "scatter"
     scatter3(values(:,2), values(:,3), values(:, 1), 50, values(:,4:6)./255, '.');
 elseif type == "trisurf"
     [tri_idx, ~] = convhull(values(:,2), values(:,3), values(:, 1));
-    vol = trisurf(tri_idx, values(:,2), values(:,3), values(:, 1), 'EdgeColor', 'none', 'FaceColor', 'interp');
+    vol = trisurf(tri_idx, values(:,2), values(:,3), values(:, 1), 'EdgeColor', 'interp', 'FaceColor', 'none');
     vol.FaceVertexCData = values(:,4:6) ./255;
 end
 end
