@@ -7,8 +7,10 @@ if type == "visible_spectrum" || type == "cie1931" || type == "1931"
 elseif type == "cie1964" || type == "1964"
     values = get_visible_spectrum("cie1964");
     return;
+elseif type == "hue"
+    values = get_linear_hue();
+    return;
 end
-
 
 i = 1;
 for r = 0:1/steps:1
@@ -22,7 +24,7 @@ for r = 0:1/steps:1
                     ((r == 0 || r == 1) && (g == 0 || g == 1)) || ...
                     ((r == 0 || r == 1) && (b == 0 || b == 1)) || ...
                     ((b == 0 || b == 1) && (g == 0 || g == 1));
-            
+                
             elseif type == "primary-borders"
                 valid_value = ...
                     ((g == 0) && (b == 0)) ||  ...
@@ -34,10 +36,10 @@ for r = 0:1/steps:1
                 
             elseif type == "mesh"
                 valid_value = (r == 0 || r == 1 || g == 0 || g == 1 || b == 0 || b == 1);
-            
+                
             elseif type == "all"
                 valid_value = 1;
-            
+                
             end
             
             if valid_value
@@ -54,6 +56,44 @@ for i = 1:1:length(values)
     end
 end
 
+end
+
+
+function values = get_linear_hue()
+data = readtable("../data/constant_hue_coci_data_hung_berns_1995/table_04.csv");
+values = [data.X, data.Y, data.Z];
+for i = 1:1:length(values)
+    RGB = XYZ_to_RGB(values(i,1),values(i,2), values(i,3), "srgb", "D65", "srgb");
+    
+    switch string(data.ColorName(i))
+        case "Red"
+            RGB = [255, 0,0];
+        case "Red-yellow"
+            RGB = [255, 127,0];
+        case "Yellow"
+            RGB = [255, 255,0];
+        case "Yellow-green"
+            RGB = [127, 255,0];
+        case "Green"
+            RGB = [0, 255,0];
+        case "Green-cyan"
+            RGB = [0, 255,127];
+        case "Cyan"
+            RGB = [0, 255,255];
+        case "Cyan-blue"
+            RGB = [0, 127,255];
+        case "Blue"
+            RGB = [0, 0,255];
+        case "Blue-magenta"
+            RGB = [128, 0,255];
+        case "Magenta"
+            RGB = [255, 0,255];
+        case "Magenta-red"
+            RGB = [255, 0,128];
+    end
+    values(i,4:6) = RGB ./255;
+    
+end
 end
 
 function values = get_visible_spectrum(data_set)
