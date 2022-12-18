@@ -5,7 +5,7 @@ addpath("../utils");
 conf.data_dir ="../measurements/other/";
 conf.files = dir(conf.data_dir + "/*.json")';
 conf.value_whitepoint = [255,255,255];
-conf.plot_type = "trisurf"; % scatter or trisurf
+conf.plot_type = "scatter"; % scatter or trisurf
 
 %%
 clear("measurements");
@@ -33,16 +33,7 @@ clear("json_text", "new_measurement", "i", "j");
 
 %%
 figure("Name", "LED Wall Measurements CIELUV and CIELAB", "NumberTitle", "off", "Position", [0 0 1200 500] );
-tiledlayout(1,3);
-
-nexttile;
-hold on;
-grid on;
-values = convert_measurements(measurements, whitepoint, "luv");
-plot_values(values, conf.plot_type);
-plot_colorspace(get_values("cie1931"), "luv", "scatter");
-title('CIELUV vs Visible Spectrum (1931 2° Standard Observer)');
-hold off;
+tiledlayout(1,2);
 
 nexttile;
 hold on;
@@ -58,6 +49,13 @@ hold on;
 grid on;
 values = convert_measurements(measurements, whitepoint, "PQuv");
 plot_values(values, conf.plot_type);
+plot_colorspace(get_values("cie1931"), "PQuv", "projection-boundary");
+
+hue_val = get_values("hue");
+hue_val(:,2) = (hue_val(:,2) ./ max(hue_val(:,2)) ) .* 1350;
+plot_colorspace(hue_val, "PQuv", "hue-curves");
+
+
 %plot_colorspace("visible-spectrum", "lab", "mesh", 32, "scatter");
 
 linear_ztick = [1, 3, 10, 30, 100, 300, 1000];
@@ -79,3 +77,6 @@ elseif type == "trisurf"
     vol.FaceVertexCData = values(:,4:6) ./255;
 end
 end
+
+
+
