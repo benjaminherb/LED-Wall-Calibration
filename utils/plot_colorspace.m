@@ -5,20 +5,31 @@ function plot_colorspace(values, colormodel, plot_type)
 % D65
 [Xw, Yw, Zw] = xyY_to_XYZ(0.3127, 0.3290, 1.0000);
 
-values_converted = NaN(length(values), 3);
+values_converted = zeros(length(values), 3);
 
 for i = 1:1:length(values)
     
-    if colormodel == "luv"
-        [v1,v2,v3] = XYZ_to_LUV(values(i,1), values(i,2), values(i,3), Xw, Yw, Zw);
-    elseif colormodel == "lab"
-        [v1,v2,v3] = XYZ_to_LAB(values(i,1), values(i,2), values(i,3), Xw, Yw, Zw);
-    elseif colormodel == "PQuv"
-        [~,v2,v3] = XYZ_to_Yuv(values(i,1), values(i,2), values(i,3));
-        v1 = linear_to_PQ(values(i,1));
-    elseif colormodel == "Yuv"
-        [v1,v2,v3] = XYZ_to_Yuv(values(i,1), values(i,2), values(i,3));
-        
+    switch colormodel
+        case "luv"
+            [v1,v2,v3] = XYZ_to_LUV(values(i,1), values(i,2), values(i,3), Xw, Yw, Zw);
+        case  "lab"
+            [v1,v2,v3] = XYZ_to_LAB(values(i,1), values(i,2), values(i,3), Xw, Yw, Zw);
+        case  "PQuv"
+            [~,v2,v3] = XYZ_to_Yuv(values(i,1), values(i,2), values(i,3));
+            if sum(values(i,1:3)) == 0 % avoid dividing / 0 -> set black to wp
+                [~,v2,v3] = XYZ_to_Yuv(Xw,Yw,Zw);
+            end
+            v1 = linear_to_PQ(values(i,1));
+        case  "Yuv"
+            [v1,v2,v3] = XYZ_to_Yuv(values(i,1), values(i,2), values(i,3));
+            
+            if sum(values(i,1:3)) == 0
+                [~,v2,v3] = XYZ_to_Yuv(Xw,Yw,Zw);
+                v1 = 0;
+                
+            end
+        case "ICtCp"
+            [v1,v2,v3] = XYZ_to_ICtCp(values(i,1), values(i,2), values(i,3));
     end
     values_converted(i,1:3) = [v1,v2,v3];
 end
@@ -43,30 +54,35 @@ elseif plot_type == "projection-boundary"
     end
     %scatter3(boundary_values(:,1),boundary_values(:,2),ones(length(boundary_values), 1), 50, 'black', '.');
 elseif plot_type == "hue-curves"
-    for i = 1:1:length(values)/9     
+    for i = 1:1:length(values)/9
         plot3(values_converted((i-1)*9+1:i*9,2), ...
-              values_converted((i-1)*9+1:i*9,3), ...
-              values_converted((i-1)*9+1:i*9,1), ...
-              'Color', values(i*9,4:6));
+            values_converted((i-1)*9+1:i*9,3), ...
+            values_converted((i-1)*9+1:i*9,1), ...
+            'Color', values(i*9,4:6));
     end
     
 end
-if colormodel == "luv"
-    xlabel("v*");
-    ylabel("u*");
-    zlabel("L*");
-elseif colormodel == "lab"
-    xlabel("a*");
-    ylabel("b*");
-    zlabel("L*");
-elseif colormodel == "PQuv"
-    xlabel("u'");
-    ylabel("v'");
-    zlabel("PQ");
-elseif colormodel == "Yuv"
-    xlabel("u'");
-    ylabel("v'");
-    zlabel("Y");
+switch colormodel
+    case "luv"
+        xlabel("v*");
+        ylabel("u*");
+        zlabel("L*");
+    case "lab"
+        xlabel("a*");
+        ylabel("b*");
+        zlabel("L*");
+    case "PQuv"
+        xlabel("u'");
+        ylabel("v'");
+        zlabel("PQ");
+    case "Yuv"
+        xlabel("u'");
+        ylabel("v'");
+        zlabel("Y");
+    case "ICtCp"
+        xlabel("Ct");
+        ylabel("Cp");
+        zlabel("I");
 end
 
 end

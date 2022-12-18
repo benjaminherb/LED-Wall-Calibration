@@ -1,15 +1,16 @@
 function values = get_values(type, colorspace, steps)
 % returns X,Y,Z,R,G,B (standard sRGB for visualisation)
 
-if type == "visible_spectrum" || type == "cie1931" || type == "1931"
-    values = get_visible_spectrum("cie1931");
-    return;
-elseif type == "cie1964" || type == "1964"
-    values = get_visible_spectrum("cie1964");
-    return;
-elseif type == "hue"
-    values = get_linear_hue();
-    return;
+switch type
+    case {"visible_spectrum", "cie1931", "1931"}
+        values = get_visible_spectrum("cie1931");
+        return;
+    case {"cie1964", "1964"}
+        values = get_visible_spectrum("cie1964");
+        return;
+    case  "hue"
+        values = get_linear_hue();
+        return;
 end
 
 i = 1;
@@ -17,29 +18,30 @@ for r = 0:1/steps:1
     for g = 0:1/steps:1
         for b = 0:1/steps:1
             
-            if type == "borders"
-                valid_value = ((r == 0 || r == 1) && g == b) || ...
-                    ((g == 0 || g == 1) && r == b) || ...
-                    ((b == 0 || b == 1) && r == g) || ...
-                    ((r == 0 || r == 1) && (g == 0 || g == 1)) || ...
-                    ((r == 0 || r == 1) && (b == 0 || b == 1)) || ...
-                    ((b == 0 || b == 1) && (g == 0 || g == 1));
-                
-            elseif type == "primary-borders"
-                valid_value = ...
-                    ((g == 0) && (b == 0)) ||  ...
-                    ((r == 0) && (b == 0)) ||  ...
-                    ((g == 0) && (r == 0)) || ...
-                    ((r == 1) && (g == b)) || ...
-                    ((g == 1) && (r == b)) || ...
-                    ((b == 1) && (r == g));
-                
-            elseif type == "mesh"
-                valid_value = (r == 0 || r == 1 || g == 0 || g == 1 || b == 0 || b == 1);
-                
-            elseif type == "all"
-                valid_value = 1;
-                
+            switch type
+                case "borders"
+                    valid_value = ((r == 0 || r == 1) && g == b) || ...
+                        ((g == 0 || g == 1) && r == b) || ...
+                        ((b == 0 || b == 1) && r == g) || ...
+                        ((r == 0 || r == 1) && (g == 0 || g == 1)) || ...
+                        ((r == 0 || r == 1) && (b == 0 || b == 1)) || ...
+                        ((b == 0 || b == 1) && (g == 0 || g == 1));
+                    
+                case "primary-borders"
+                    valid_value = ...
+                        ((g == 0) && (b == 0)) ||  ...
+                        ((r == 0) && (b == 0)) ||  ...
+                        ((g == 0) && (r == 0)) || ...
+                        ((r == 1) && (g == b)) || ...
+                        ((g == 1) && (r == b)) || ...
+                        ((b == 1) && (r == g));
+                    
+                case "mesh"
+                    valid_value = (r == 0 || r == 1 || g == 0 || g == 1 || b == 0 || b == 1);
+                    
+                otherwise
+                    valid_value = 1;
+                    
             end
             
             if valid_value
@@ -51,8 +53,11 @@ for r = 0:1/steps:1
 end
 
 for i = 1:1:length(values)
-    if colorspace == "srgb"
-        values(i,1:3) = RGB_to_XYZ(values(i,4),values(i,5), values(i,6), "srgb", "D65", "srgb");
+    switch colorspace
+        case "srgb"
+            values(i,1:3) = RGB_to_XYZ(values(i,4),values(i,5), values(i,6), "srgb", "D65", "srgb");
+        case "rec2020"
+            values(i,1:3) = RGB_to_XYZ(values(i,4),values(i,5), values(i,6), "rec2020", "D65", "pq");
     end
 end
 
