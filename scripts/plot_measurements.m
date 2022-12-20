@@ -32,8 +32,52 @@ end
 clear("json_text", "new_measurement", "i", "j");
 
 %%
+
+%plot_v01(conf, measurements, whitepoint)
+plot_v02(measurements, whitepoint)
+%plot_v03(measurements, whitepoint)
+
+
+%%
+function plot_v03(measurements, whitepoint)
+
 figure("Name", "LED Wall Measurements", "NumberTitle", "off", "Position", [0 0 1200 500] );
-tiledlayout(2,3);
+tiledlayout(1,2);
+
+nexttile;
+hold on;
+grid on;
+measured_values = convert_measurements(measurements, whitepoint, "XYZ");
+plot_colorspace(measured_values, "PQuv", "trisurf");
+plot_colorspace(get_values("cie1931"), "PQuv", "projection-boundary");
+%plot_colorspace(get_values("mesh", "rec2020", 32, 1000), "PQuv", "scatter", 10000);
+%plot_colorspace(get_values("mesh", "srgb", 32, 300), "PQuv", "scatter", 10000);
+title("PQu'v'");
+show_cdm2_values_for_pq(10000);
+hold off;
+
+nexttile;
+hold on;
+grid on;
+peak_luminance = 10000;
+measured_values = convert_measurements(measurements, whitepoint, "XYZ");
+plot_colorspace(measured_values, "ICtCp", "trisurf");
+plot_colorspace(get_values("cie1931"), "ICtCp", "projection-boundary");
+plot_colorspace(get_values("mesh", "rec2020", 32, 10), "ICtCp", "scatter");
+%plot_colorspace(get_values("mesh", "srgb", 32, 300), "ICtCp", "scatter");
+title("ICtCp");
+show_cdm2_values_for_pq(10000);
+hold off;
+end
+
+
+
+%%
+
+function plot_v01(conf, measurements, whitepoint)
+
+figure("Name", "LED Wall Measurements", "NumberTitle", "off", "Position", [0 0 1200 500] );
+tiledlayout(1,3);
 
 nexttile;
 hold on;
@@ -60,7 +104,11 @@ show_cdm2_values_for_pq(10000);
 hold off;
 
 nexttile;
+end
 %%
+function plot_v02(measurements, whitepoint)
+tiledlayout(1,3);
+
 nexttile;
 hold on;
 grid on;
@@ -90,6 +138,7 @@ plot_colorspace(get_values("mesh", "srgb", 32), "ICtCp", "projection-boundary");
 title("ICtCp");
 show_cdm2_values_for_pq(10000);
 hold off;
+end
 
 
 

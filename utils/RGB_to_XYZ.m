@@ -1,4 +1,8 @@
-function XYZ = RGB_to_XYZ(R, G, B, primaries, whitepoint, transfercurve)
+function XYZ = RGB_to_XYZ(R, G, B, primaries, whitepoint, transfercurve, peak_luminance)
+
+if ~exist("peak_luminance","var")
+    peak_luminance = 10000;
+end
 
 switch whitepoint
     case "D65"
@@ -23,7 +27,7 @@ switch transfercurve
     case "srgb"
         RGB = [sRGB_to_linear(R), sRGB_to_linear(G), sRGB_to_linear(B)];
     case "pq"
-        RGB = [PQ_to_linear(R), PQ_to_linear(G), PQ_to_linear(B)];
+        RGB = [PQ_to_linear(R, peak_luminance), PQ_to_linear(G, peak_luminance), PQ_to_linear(B, peak_luminance)];
     otherwise
         RGB = [R,G,B];
         

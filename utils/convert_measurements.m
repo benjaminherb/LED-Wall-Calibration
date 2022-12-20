@@ -1,4 +1,7 @@
-function result = convert_measurements(measurements, whitepoint, target)
+function result = convert_measurements(measurements, whitepoint, target, peak_luminance)
+if ~exist("peak_luminance", "var")
+    peak_luminance = 10000;
+end
 
 result = NaN(length(measurements), 6);
 for i = 1:1:length(measurements)
@@ -36,7 +39,7 @@ for i = 1:1:length(measurements)
         end
         
     elseif target == "PQuv" || target == "PQu'v'"
-        PQ = linear_to_PQ(measurements(i).Yuv.Y, whitepoint.XYZ.Y);
+        PQ = linear_to_PQ(measurements(i).Yuv.Y, peak_luminance);
         result(i, 1:3) = [PQ, measurements(i).Yuv.u, measurements(i).Yuv.v];
         if (measurements(i).XYZ.X + measurements(i).XYZ.Y + measurements(i).XYZ.Z == 0 ...
             || measurements(i).Yxy.value == "-0008")

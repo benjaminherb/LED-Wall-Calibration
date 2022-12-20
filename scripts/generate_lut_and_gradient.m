@@ -4,7 +4,7 @@
 % Test Wall: 384x256
 % LED Wall:  768x768 (x2)
 
-addpath("..\utils\");
+addpath("../utils/");
 
 %% INPUT
 
@@ -47,7 +47,7 @@ eight_bit_curve = NaN(size(eight_bit_lin));
 switch(transfer_curve)
     case "pq"
         for i = 1:1:length(eight_bit_lin)
-            eight_bit_curve(i) = linear_to_PQ(eight_bit_lin(i));
+            eight_bit_curve(i) = linear_to_PQ(eight_bit_lin(i), 1);
         end
         fileprefix = "LUT_PQ_";
     case "srgb"
@@ -62,6 +62,12 @@ switch(transfer_curve)
         error("Unkknown transfercurve: " + transfer_curve);
 end
 %% GENERATE LUT FILES
+timestamp = datestr(datetime,'yyyymmdd_HHMMss');
+
+LUT_DIR = LUT_DIR + "/" + timestamp + "/";
+if not(isfolder(LUT_DIR))
+    mkdir(LUT_DIR)
+end
 
 for n = 1:15
     scaled_vector = (eight_bit_curve .* 2^n) + 2^n;

@@ -1,4 +1,8 @@
-function plot_colorspace(values, colormodel, plot_type)
+function plot_colorspace(values, colormodel, plot_type, peak_luminance)
+
+if ~exist("peak_luminance", "var")
+    peak_luminance = 10000;
+end
 % values = get_black_to_white_test_values();
 % values = get_all_values(); % ALL the values
 
@@ -26,7 +30,7 @@ for i = 1:1:length(values)
             if sum(values(i,1:3)) == 0 % avoid dividing / 0 -> set black to wp
                 [~,v2,v3] = XYZ_to_Yuv(Xw,Yw,Zw);
             end
-            v1 = linear_to_PQ(values(i,1));
+            v1 = linear_to_PQ(values(i,1), peak_luminance);
         case  "Yuv"
             [v1,v2,v3] = XYZ_to_Yuv(values(i,1), values(i,2), values(i,3));
             

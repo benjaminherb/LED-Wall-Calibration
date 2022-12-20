@@ -9,10 +9,10 @@ conf.values = cat(3, zeros(1,256),zeros(1,256), 0:1:255);
 conf.values = get_black_to_white_test_values();
 
 
-conf.show_images = true; % show the values as an fullscreen image
+conf.show_images = false; % show the values as an fullscreen image
 conf.width = 1920;
 conf.height = 1080;
-conf.file_name = "measurement_pc_response_curve_blue"; % appended to filename
+conf.file_name = "measurement_pc_response_curve_grey"; % appended to filename
 conf.output_dir = "../measurements/auto_measure/";
 
 %% SETUP
@@ -47,6 +47,7 @@ end
 clear("measurements")
 
 pause(10);
+tic
 for i = 1:length(conf.values)
     
     if conf.show_images
@@ -63,12 +64,16 @@ for i = 1:length(conf.values)
         catch exception
             fprintf("\nStarting measurement (" + i +")\n");
         end
-        pause;
+        % pause;
     end
     
     current_measurement = spectro.measure(conf.command);
     current_measurement.measurement = conf.values(:,i,:);
     measurements(i) = current_measurement;
+    
+    while toc - (i*(24*0.02*5)) < 0
+        pause(0.01);
+    end
 end
 
 if conf.show_images

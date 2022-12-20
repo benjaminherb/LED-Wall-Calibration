@@ -1,5 +1,9 @@
-function values = get_values(type, colorspace, steps)
+function values = get_values(type, colorspace, steps, peak_luminance)
 % returns X,Y,Z,R,G,B (standard sRGB for visualisation)
+
+if ~exist("peak_luminance","var")
+    peak_luminance = 1;
+end
 
 switch type
     case {"visible_spectrum", "cie1931", "1931"}
@@ -57,10 +61,10 @@ for i = 1:1:length(values)
         case "srgb"
             values(i,1:3) = RGB_to_XYZ(values(i,4),values(i,5), values(i,6), "srgb", "D65", "srgb");
         case "rec2020"
-            values(i,1:3) = RGB_to_XYZ(values(i,4),values(i,5), values(i,6), "rec2020", "D65", "pq");
+            values(i,1:3) = RGB_to_XYZ(values(i,4),values(i,5), values(i,6), "rec2020", "D65", "pq", 1);
     end
+    values(i,1:3) = values(i,1:3) .* peak_luminance;
 end
-
 end
 
 
@@ -96,12 +100,11 @@ for i = 1:1:length(values)
         case "Magenta-red"
             RGB = [255, 0,128];
     end
-    values(i,4:6) = [linear_to_sRGB(RGB(1)/255), ...
-                     linear_to_sRGB(RGB(2)/255), ...
-                     linear_to_sRGB(RGB(3)/255)];
-    
-    values(i,1:3) = values(i,1:3) ./ max(values(:,2)); % scale to highest y value
-    
+    values(i,4:6) = [ ...
+        linear_to_sRGB(RGB(1)/255), ...
+        linear_to_sRGB(RGB(2)/255), ...
+        linear_to_sRGB(RGB(3)/255)];
+   
 end
 end
 
