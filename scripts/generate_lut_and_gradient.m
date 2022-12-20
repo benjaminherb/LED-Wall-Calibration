@@ -8,7 +8,7 @@ addpath("../utils/");
 
 %% INPUT
 
-transfer_curve = "pq";      % pq, sRGB oder gamma
+transfer_curve = "pqinverse";      % pq, sRGB oder gamma
 GAMMA = 2.2;
 OUTPUT_DIR = "../output";
 
@@ -45,7 +45,12 @@ eight_bit_lin = (0:1:255)./255;
 eight_bit_curve = NaN(size(eight_bit_lin));
 
 switch(transfer_curve)
-    case "pq"
+    case "pqinverse"
+        for i = 1:1:length(eight_bit_lin)
+            eight_bit_curve(i) = PQ_to_linear(eight_bit_lin(i), 1);
+        end
+        fileprefix = "LUT_PQ_";
+     case "pq"
         for i = 1:1:length(eight_bit_lin)
             eight_bit_curve(i) = linear_to_PQ(eight_bit_lin(i), 1);
         end
@@ -81,9 +86,10 @@ for n = 1:15
         if(first_number)
             fprintf(output_file, string(v));
             first_number = 0;
-        end
+        else
         fprintf(output_file, "," + v);
-
+        end
+        
     end
 end
 
