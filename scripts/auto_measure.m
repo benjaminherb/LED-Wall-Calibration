@@ -46,7 +46,13 @@ end
 
 clear("measurements")
 
-pause(10);
+disp(3);
+pause(1);
+disp(2);
+pause(1);
+disp(1);
+pause(1);
+disp(0);
 tic
 for i = 1:length(conf.values)
     
