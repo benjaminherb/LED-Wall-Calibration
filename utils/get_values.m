@@ -96,7 +96,11 @@ for i = 1:1:length(values)
         case "Magenta-red"
             RGB = [255, 0,128];
     end
-    values(i,4:6) = RGB ./255;
+    values(i,4:6) = [linear_to_sRGB(RGB(1)/255), ...
+                     linear_to_sRGB(RGB(2)/255), ...
+                     linear_to_sRGB(RGB(3)/255)];
+    
+    values(i,1:3) = values(i,1:3) ./ max(values(:,2)); % scale to highest y value
     
 end
 end

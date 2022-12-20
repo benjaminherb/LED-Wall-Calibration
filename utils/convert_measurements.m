@@ -50,5 +50,5 @@ for i = 1:1:length(measurements)
                                        measurements(i).measurement, ...
                                        measurements(i).measurement];
     end
-    result(i,4:6) = measurements(i).measurement;
+    result(i,4:6) = measurements(i).measurement ./ 255;
 end

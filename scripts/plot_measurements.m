@@ -32,39 +32,65 @@ end
 clear("json_text", "new_measurement", "i", "j");
 
 %%
-figure("Name", "LED Wall Measurements CIELUV and CIELAB", "NumberTitle", "off", "Position", [0 0 1200 500] );
-tiledlayout(1,2);
+figure("Name", "LED Wall Measurements", "NumberTitle", "off", "Position", [0 0 1200 500] );
+tiledlayout(2,3);
 
 nexttile;
 hold on;
 grid on;
-values = convert_measurements(measurements, whitepoint, "lab");
-plot_values(values, conf.plot_type);
-plot_colorspace(get_values("cie1931"), "lab", "scatter");
-title('CIELAB vs Visible Spectrum (1931 2° Standard Observer)');
-hold off;
-
-nexttile;
-hold on;
-grid on;
-values = convert_measurements(measurements, whitepoint, "PQuv");
-plot_values(values, conf.plot_type);
+measured_values = convert_measurements(measurements, whitepoint, "XYZ");
+plot_colorspace(measured_values, "PQuv", "trisurf");
 plot_colorspace(get_values("cie1931"), "PQuv", "projection-boundary");
-
-hue_val = get_values("hue");
-hue_val(:,2) = (hue_val(:,2) ./ max(hue_val(:,2)) ) .* 1350;
-plot_colorspace(hue_val, "PQuv", "hue-curves");
-
-
-%plot_colorspace("visible-spectrum", "lab", "mesh", 32, "scatter");
-
-linear_ztick = [1, 3, 10, 30, 100, 300, 1000];
-ztick = NaN(size(linear_ztick));
-for i = 1:1:length(linear_ztick)
-    ztick(i) = linear_to_PQ(linear_ztick(i), whitepoint.XYZ.Y);
-end
-set(gca, 'ZTick', ztick, 'ZTickLabel', linear_ztick);
+plot_colorspace(get_values("mesh", "rec2020", 32), "PQuv", "projection-boundary");
+plot_colorspace(get_values("mesh", "srgb", 32), "PQuv", "projection-boundary");
+title("PQu'v'");
+show_cdm2_values_for_pq(10000);
 hold off;
+
+nexttile;
+hold on;
+grid on;
+measured_values = convert_measurements(measurements, whitepoint, "XYZ");
+%plot_colorspace(measured_values, "ICtCp", "trisurf");
+%plot_colorspace(get_values("cie1931"), "ICtCp", "projection-boundary");
+plot_colorspace(get_values("mesh", "rec2020", 32), "ICtCp", "scatter");
+%plot_colorspace(get_values("mesh", "srgb", 32), "ICtCp", "scatter");
+title("ICtCp");
+show_cdm2_values_for_pq(10000);
+hold off;
+
+nexttile;
+%%
+nexttile;
+hold on;
+grid on;
+plot_colorspace(get_values("hue"), "lab", "hue-projection");
+%plot_colorspace(get_values("hue"), "lab", "hue-curves");
+plot_colorspace(get_values("mesh", "srgb", 32), "lab", "projection-boundary");
+title("CIELAB");
+%show_cdm2_values_for_pq(10000);
+hold off;
+
+nexttile;
+hold on;
+grid on;
+plot_colorspace(get_values("hue"), "PQuv", "hue-projection");
+%plot_colorspace(get_values("hue"), "lab", "hue-curves");
+plot_colorspace(get_values("mesh", "srgb", 32), "PQuv", "projection-boundary");
+title("PQu'v'");
+show_cdm2_values_for_pq(10000);
+hold off;
+
+nexttile;
+hold on;
+grid on;
+plot_colorspace(get_values("hue"), "ICtCp", "hue-projection");
+%plot_colorspace(get_values("hue"), "lab", "hue-curves");
+plot_colorspace(get_values("mesh", "srgb", 32), "ICtCp", "projection-boundary");
+title("ICtCp");
+show_cdm2_values_for_pq(10000);
+hold off;
+
 
 
 %%
@@ -78,5 +104,14 @@ elseif type == "trisurf"
 end
 end
 
+function show_cdm2_values_for_pq(max_value)
+linear_ztick = [0.1, 0.3, 1, 3, 10, 30, 100, 300, 1000, 3000, 10000];
+ztick = NaN(size(linear_ztick));
+for i = 1:1:length(linear_ztick)
+    ztick(i) = linear_to_PQ(linear_ztick(i), max_value);
+end
+set(gca, 'ZTick', ztick, 'ZTickLabel', linear_ztick);
+hold off;
+end
 
 
