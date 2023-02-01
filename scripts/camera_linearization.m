@@ -6,22 +6,20 @@ addpath("../utils/");
 
 captured_testpattern = imread("../data/testchart_blur2.JPG");
 original_testpattern = imread("../output/PRIMARIES/PRIMARIES_CAMERA_TEST_384_256.png");
+captured_testimage   = imread("../data/landscape_camera.JPG");
+original_testimage   = imread("../data/lanscape_test.png");
 
 %% Get values and calculate matrix
 
 captured_testpattern = im2double(captured_testpattern);
+captured_testimage = im2double(captured_testimage);
 
-patch_captured.red   = get_patch_from_test_image(captured_testpattern,1,1);
-patch_captured.green = get_patch_from_test_image(captured_testpattern,2,1);
-patch_captured.blue  = get_patch_from_test_image(captured_testpattern,3,1);
-patch_captured.black = get_patch_from_test_image(captured_testpattern,1,2);
-patch_captured.grey  = get_patch_from_test_image(captured_testpattern,2,2);
-patch_captured.white = get_patch_from_test_image(captured_testpattern,3,2);
+patches_captured = get_patches_from_test_image(captured_testpattern);
 
-red_captured   = get_lin_mean_rgb_from_patch(patch_captured.red);
-green_captured = get_lin_mean_rgb_from_patch(patch_captured.green);
-blue_captured  = get_lin_mean_rgb_from_patch(patch_captured.blue);
-white_captured = get_lin_mean_rgb_from_patch(patch_captured.white);
+red_captured   = get_lin_mean_rgb_from_patch(patches_captured.red);
+green_captured = get_lin_mean_rgb_from_patch(patches_captured.green);
+blue_captured  = get_lin_mean_rgb_from_patch(patches_captured.blue);
+white_captured = get_lin_mean_rgb_from_patch(patches_captured.white);
 
 calibration_matrix = calculate_calibration_matrix( ...
     red_captured, green_captured, blue_captured, white_captured);
@@ -30,42 +28,62 @@ disp("Calibration Matrix");
 disp(calibration_matrix);
 
 %% Apply matrix to the image
-
-corrected_testpattern = zeros(size(captured_testpattern));
-
-for y=1:height(captured_testpattern)
-    for x=1:width(captured_testpattern)
-        
-        rgb = [sRGB_to_linear(captured_testpattern(y,x,1)), ...
-            sRGB_to_linear(captured_testpattern(y,x,2)), ...
-            sRGB_to_linear(captured_testpattern(y,x,3))];
-        
-        rgb = rgb * calibration_matrix;
-        rgb = clip_values(rgb);
-        
-        corrected_testpattern(y,x,:) = cat(3, linear_to_sRGB(rgb(1)), ...
-            linear_to_sRGB(rgb(2)), ...
-            linear_to_sRGB(rgb(3)));
-    end
-end
-
-patch_corrected.red   = get_patch_from_test_image(corrected_testpattern,1,1);
-patch_corrected.green = get_patch_from_test_image(corrected_testpattern,2,1);
-patch_corrected.blue  = get_patch_from_test_image(corrected_testpattern,3,1);
-patch_corrected.black = get_patch_from_test_image(corrected_testpattern,1,2);
-patch_corrected.grey  = get_patch_from_test_image(corrected_testpattern,2,2);
-patch_corrected.white = get_patch_from_test_image(corrected_testpattern,3,2);
+corrected_testpattern = apply_matrix(captured_testpattern, calibration_matrix);
+corrected_testimage = apply_matrix(captured_testimage, calibration_matrix);
 
 %% Compare results
+patches_corrected = get_patches_from_test_image(corrected_testpattern);
+patches_original = get_patches_from_test_image(original_testpattern);
 
-compare_captured_corrected(patch_captured, patch_corrected , 3)
+% compare_captured_corrected(patches_captured, patches_corrected, 3)
 
 figure();
-tiledlayout(2,1);
+tl = tiledlayout(2,4);
+tl.TileSpacing = 'compact';
+
 nexttile();
 imshow(captured_testpattern);
 nexttile();
 imshow(corrected_testpattern);
+nexttile();
+imshow(corrected_testpattern ./ 0.9400);
+nexttile();
+imshow(original_testpattern);
+
+
+nexttile();
+imshow(captured_testimage);
+nexttile();
+imshow(corrected_testimage);
+nexttile();
+imshow(corrected_testimage ./ 0.9400);
+nexttile();
+imshow(original_testimage);
+
+
+%% Utility Functions
+
+function corrected_image = apply_matrix(original_image, matrix)
+corrected_image = zeros(size(original_image));
+
+for y=1:height(original_image)
+    for x=1:width(original_image)
+        
+        rgb = [sRGB_to_linear(original_image(y,x,1)), ...
+               sRGB_to_linear(original_image(y,x,2)), ...
+               sRGB_to_linear(original_image(y,x,3))];
+        
+        rgb = rgb * matrix;
+        rgb = clip_values(rgb);
+        
+        corrected_image(y,x,:) = cat(3, linear_to_sRGB(rgb(1)), ...
+                                        linear_to_sRGB(rgb(2)), ...
+                                        linear_to_sRGB(rgb(3)));
+    end
+end
+
+end
+
 
 function compare_captured_corrected(patch_captured, patch_corrected, comparison_amount)
 
@@ -107,7 +125,20 @@ end
 rgb = [mean(lin_rgb(:,:,1), 'all'), mean(lin_rgb(:,:,2), 'all'), mean(lin_rgb(:,:,3), 'all')];
 end
 
-function patch = get_patch_from_test_image(img, x, y, radius)
+
+function patches = get_patches_from_test_image(img)
+
+patches.red   = get_patch(img,1,1);
+patches.green = get_patch(img,2,1);
+patches.blue  = get_patch(img,3,1);
+patches.black = get_patch(img,1,2);
+patches.grey  = get_patch(img,2,2);
+patches.white = get_patch(img,3,2);
+
+end
+
+
+function patch = get_patch(img, x, y, radius)
 
 % normalize HxW to be devisable by 2 and 3
 [height,width, ~] = size(img);
@@ -124,6 +155,7 @@ patch = img( (height/4) * (2*y-1) - radius : (height/4) * (2*y-1) + radius, ...
 
 end
 
+
 function matrix = calculate_calibration_matrix(red, green, blue, white)
 f = [red; green; blue];
 white_scaled = white ./ max(white);
@@ -133,6 +165,7 @@ f = f * [S(1), 0, 0; ...
          0, 0, S(3)];
 matrix = f^(-1);
 end
+
 
 function rgb = clip_values(rgb)
 % clamp values between 0 and 1
