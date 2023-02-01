@@ -4,15 +4,29 @@ clc;
 
 addpath("../utils/");
 
-captured_testpattern = imread("../data/testchart_blur2.JPG");
-original_testpattern = imread("../output/PRIMARIES/PRIMARIES_CAMERA_TEST_384_256.png");
-captured_testimage   = imread("../data/landscape_camera.JPG");
-original_testimage   = imread("../data/lanscape_test.png");
+captured_testpattern = im2double(imread("../data/images/20230124/testchart_blur_2.jpg"));
+original_testpattern = im2double(imread("../data/images/20230124/testchart_original.png"));
+captured_testimage   = im2double(imread("../data/images/20230124/landscape_blur.jpg"));
+original_testimage   = im2double(imread("../data/images/20230124/landscape_original.png"));
+
+
+%% Check image linearity
+
+path = "../data/images/20230124/blendenreihe";
+
+disp("Blendenreihe (linearisiert über sRGB)");
+files = dir(path + "/*.jpg")';
+data = struct();
+for i = 1:1:length(files)
+    img = imread(files(i).folder + "/" + files(i).name);
+    grey_patch = get_patch(img, 2,2);
+    disp(files(i).name + ": " + sRGB_to_linear( mean(reshape(grey_patch,1,[])) / 255));
+end
+
+clear("i", "img", "grey_patch");
+
 
 %% Get values and calculate matrix
-
-captured_testpattern = im2double(captured_testpattern);
-captured_testimage = im2double(captured_testimage);
 
 patches_captured = get_patches_from_test_image(captured_testpattern);
 
@@ -35,10 +49,10 @@ corrected_testimage = apply_matrix(captured_testimage, calibration_matrix);
 patches_corrected = get_patches_from_test_image(corrected_testpattern);
 patches_original = get_patches_from_test_image(original_testpattern);
 
-% compare_captured_corrected(patches_captured, patches_corrected, 3)
+compare_captured_corrected_original(patches_captured, patches_corrected, patches_original, 3);
 
 figure();
-tl = tiledlayout(2,4);
+tl = tiledlayout(2,3);
 tl.TileSpacing = 'compact';
 
 nexttile();
@@ -46,17 +60,12 @@ imshow(captured_testpattern);
 nexttile();
 imshow(corrected_testpattern);
 nexttile();
-imshow(corrected_testpattern ./ 0.9400);
-nexttile();
 imshow(original_testpattern);
-
 
 nexttile();
 imshow(captured_testimage);
 nexttile();
 imshow(corrected_testimage);
-nexttile();
-imshow(corrected_testimage ./ 0.9400);
 nexttile();
 imshow(original_testimage);
 
@@ -85,7 +94,7 @@ end
 end
 
 
-function compare_captured_corrected(patch_captured, patch_corrected, comparison_amount)
+function compare_captured_corrected_original(patch_captured, patch_corrected, patch_original, comparison_amount)
 
 patch_names = fieldnames(patch_captured);
 
@@ -94,18 +103,22 @@ if (~exist("comparison_amount", "var") || comparison_amount > length(patch_names
 end
 
 figure();
-tiledlayout(comparison_amount,2);
+tiledlayout(comparison_amount, 3);
 
 for i = 1:comparison_amount
     disp("Captured " + patch_names{i});
     disp(get_lin_mean_rgb_from_patch(patch_captured.(patch_names{i})));
     disp("Corrected " + patch_names{i});
     disp(get_lin_mean_rgb_from_patch(patch_corrected.(patch_names{i})));
+    disp("Original " + patch_names{i});
+    disp(get_lin_mean_rgb_from_patch(patch_original.(patch_names{i})));
 
     nexttile();
     imshow(patch_captured.(patch_names{i}));
     nexttile();
     imshow(patch_corrected.(patch_names{i}));
+    nexttile();
+    imshow(patch_original.(patch_names{i}));
 end
 
 end
