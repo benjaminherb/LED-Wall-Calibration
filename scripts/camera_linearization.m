@@ -5,26 +5,61 @@ clc;
 addpath("../utils/");
 
 captured_testpattern = im2double(imread("../data/images/20230124/testchart_blur_2.jpg"));
+captured_testpattern = im2double(imread("../data/images/20230124/blendenreihe_raw/DSC02849.tiff"));
 original_testpattern = im2double(imread("../data/images/20230124/testchart_original.png"));
 captured_testimage   = im2double(imread("../data/images/20230124/landscape_blur.jpg"));
 original_testimage   = im2double(imread("../data/images/20230124/landscape_original.png"));
+%%
 
+captured_testpattern = img_lin_to_srgb(captured_testpattern);
+imshow(captured_testpattern);
+
+%%
+clc;
+for i = 0:12
+   disp(round((1/(2^i)) * 255));
+end
+
+disp("sRGB");
+for i = 0:12
+   disp(round(linear_to_sRGB(1/(2^i)) * 255));
+end
+
+disp("PQ");
+for i = 0:24
+   disp(round(linear_to_PQ(1/(2^i)*10000) * 255));
+end
+
+
+%%
+
+test_img = im2double(imread("/home/ben/Code/LED-Wall-Calibration/data/images/20230124/blendenreihe_raw/DSC02849.tiff"));
+
+figure();
+imshow(get_patch(test_img, 3,2));
+figure();
+imshow(get_patch(captured_testpattern, 3,2));
+mean(reshape(get_patch(test_img, 3,2),1,[]))
+mean(reshape(get_patch(captured_testpattern, 3,2),1,[]))
 
 %% Check image linearity
 
-path = "../data/images/20230124/blendenreihe";
+path = "../data/images/20230124/blendenreihe_raw";
 
 disp("Blendenreihe (linearisiert über sRGB)");
-files = dir(path + "/*.jpg")';
+files = dir(path + "/*.tiff")';
 data = struct();
+values = zeros(length(files),1);
+
 for i = 1:1:length(files)
     img = imread(files(i).folder + "/" + files(i).name);
     grey_patch = get_patch(img, 2,2);
-    disp(files(i).name + ": " + sRGB_to_linear( mean(reshape(grey_patch,1,[])) / 255));
+    disp(files(i).name + ": " + ( mean(reshape(grey_patch,1,[])) ));
+    values(i) = mean(reshape(grey_patch,1,[]));
 end
 
+values = round(sort(values));
 clear("i", "img", "grey_patch");
-
 
 %% Get values and calculate matrix
 
@@ -46,13 +81,18 @@ corrected_testpattern = apply_matrix(captured_testpattern, calibration_matrix);
 corrected_testimage = apply_matrix(captured_testimage, calibration_matrix);
 
 %% Compare results
+
+max_value = max(reshape(corrected_testpattern,1,[]));
+patches_corrected_scaled = corrected_testpattern ./ max_value;
 patches_corrected = get_patches_from_test_image(corrected_testpattern);
+patches_corrected_scaled = get_patches_from_test_image(patches_corrected_scaled);
 patches_original = get_patches_from_test_image(original_testpattern);
 
-compare_captured_corrected_original(patches_captured, patches_corrected, patches_original, 3);
+
+compare_captured_corrected_original(patches_corrected, patches_corrected_scaled, patches_original, 6);
 
 figure();
-tl = tiledlayout(2,3);
+tl = tiledlayout(2,4);
 tl.TileSpacing = 'compact';
 
 nexttile();
@@ -60,12 +100,18 @@ imshow(captured_testpattern);
 nexttile();
 imshow(corrected_testpattern);
 nexttile();
+imshow(corrected_testpattern_scaled);
+nexttile();
 imshow(original_testpattern);
+%%
+max_value_test_image = prctile(reshape(corrected_testimage,1,[]), 60, 'method', "approximate");
 
 nexttile();
 imshow(captured_testimage);
 nexttile();
 imshow(corrected_testimage);
+nexttile();
+imshow(corrected_testimage ./ max_value_test_image);
 nexttile();
 imshow(original_testimage);
 
@@ -123,6 +169,17 @@ end
 
 end
 
+function srgb = img_lin_to_srgb(lin)
+srgb = NaN(size(lin));
+for y=1:height(lin)
+    for x=1:width(lin)
+        for c=1:3
+            srgb(y,x,c) = linear_to_sRGB(lin(y,x,c));
+        end
+    end
+end
+end
+
 
 function rgb = get_lin_mean_rgb_from_patch(img)
 lin_rgb = NaN(size(img));
@@ -131,7 +188,7 @@ img = double(img);
 for x=1:length(img)
     for y=1:length(img)
         for c=1:3
-            lin_rgb(x,y,c) =sRGB_to_linear(img(x,y,c));
+            lin_rgb(x,y,c) = sRGB_to_linear(img(x,y,c));
         end
     end
 end
