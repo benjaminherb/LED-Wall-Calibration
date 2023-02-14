@@ -2,15 +2,16 @@ close all;
 clear;
 clc;
 
-addpath("../utils/");
+%%
 
-captured_testpattern = im2double(raw2rgb("../data/images/20230207/testchart_lumix.RW2", "ColorSpace", "camera"));
+addpath("../utils/");
+captured_testpattern = im2double(raw2rgb("../data/images/20230214/DSC02886.ARW", "ColorSpace", "camera"));
 %captured_testpattern = im2double(raw2rgb("../data/images/20230207/testchart_sony.ARW", "ColorSpace", "camera"));
 original_testpattern = im2double(imread("../data/images/20230124/testchart_original.png"));
 
-captured_landscape = im2double(raw2rgb("../data/images/20230207/landscape_lumix.RW2", "ColorSpace", "camera"));
+captured_landscape = im2double(raw2rgb("../data/images/20230214/DSC02887.ARW", "ColorSpace", "camera"));
 %captured_landscape = im2double(raw2rgb("../data/images/20230207/landscape_sony.ARW", "ColorSpace", "camera"));
-original_landscape = im2double(imread("../data/images/20230124/landscape_original.png"));
+original_landscape = im2double(imread("../data/images/20230214/test_landscape_02.png"));
 
 % Crop image to roughly the LED wall (draw rectangle -> right click -> crop)
 figure('name','Crop image to roughly the LED wall (draw rectangle -> right click -> crop)');
@@ -21,15 +22,17 @@ close;
 % Check image linearity (not in git due to size)
 % evaluate_linearity("../data/images/20230207/blendenreihe_lumix", 'RW2');
 % evaluate_linearity("../data/images/20230124/blendenreihe_sony", 'ARW');
+%%
 
+%original_landscape_precorrected = apply_matrix(original_landscape, inv(transpose(calibration_matrix)));
 %% Get values and calculate matrix
 
 patches_captured = get_patches_from_test_image(captured_testpattern);
 
-red_captured   = get_mean_rgb_from_patch(patches_captured.red);
-green_captured = get_mean_rgb_from_patch(patches_captured.green);
-blue_captured  = get_mean_rgb_from_patch(patches_captured.blue);
-white_captured = get_mean_rgb_from_patch(patches_captured.white);
+red_captured   = get_median_rgb_from_patch(patches_captured.red);
+green_captured = get_median_rgb_from_patch(patches_captured.green);
+blue_captured  = get_median_rgb_from_patch(patches_captured.blue);
+white_captured = get_median_rgb_from_patch(patches_captured.white);
 
 calibration_matrix = calculate_calibration_matrix( ...  
     red_captured, green_captured, blue_captured, white_captured);
@@ -39,8 +42,8 @@ disp(calibration_matrix);
 
 %% Apply matrix to the image
 
-corrected_testpattern = apply_matrix(captured_testpattern, calibration_matrix);
-corrected_landscape = apply_matrix(captured_landscape, calibration_matrix);
+corrected_testpattern = apply_matrix(captured_testpattern, transpose(calibration_matrix));
+corrected_landscape = apply_matrix(captured_landscape, transpose(calibration_matrix));
 
 %% Compare results
 
@@ -81,6 +84,61 @@ imshow(corrected_landscape_srgb_scaled);
 nexttile();
 imshow(original_landscape);
 
+%%
+
+% imimi = im2double(imread('../data/images/20230214/PRIMARIES_CAMERA_TEST_768_768_50_dark.png'));
+% imimicorrected = apply_matrix(imimi, transpose(calibration_matrix));
+% imwrite(imimicorrected, '../out/test_chart_half_corrected.png');
+
+%%
+
+img_landscape_2 = im2double(imread('../res/test_landscape_02.png'));
+
+img_pre_corrected = apply_matrix(img_landscape_2, transpose(calibration_matrix));
+img_pre_corrected_smart = apply_matrix_smart(img_landscape_2, transpose(calibration_matrix));
+
+pad_img = padarray(img_pre_corrected, [1080-height(img_pre_corrected), 1920-width(img_pre_corrected)], 0, 'post');
+imshow(pad_img);
+imwrite(img_pre_corrected, '../out/img_pre_corrected_landscape_2_dumb.png');
+imwrite(img_pre_corrected_smart, '../out/img_pre_corrected_landscape_2_smart.png');
+
+pad_img_uncorrected = padarray(img_landscape_2, [1080-height(img_pre_corrected), 1920-width(img_pre_corrected)], 0, 'post');
+imwrite(pad_img_uncorrected, '../out/img_uncorrected_landscape_2_dumb.png');
+
+imwrite(pad_img, '../out/img_pre_corrected_dumb_landscape_2.png');
+%%
+figure('name', 'Crop');
+original_landscape_2 = im2double(imread('../res/test_landscape_02.png'));
+
+captured_landscape_2_uncorrected = im2double(imresize(raw2rgb("../data/images/20230214/DSC02889.ARW", "ColorSpace", "camera"), 0.4));
+captured_landscape_2_precorrected = im2double(imresize(raw2rgb("../data/images/20230214/DSC02890.ARW", "ColorSpace", "camera"), 0.4));
+captured_landscape_2_postcorrected = apply_matrix(captured_landscape_2_uncorrected, transpose(calibration_matrix));
+
+captured_landscape_2_uncorrected_srgb = img_lin_to_srgb(captured_landscape_2_uncorrected);
+captured_landscape_2_precorrected_srgb = img_lin_to_srgb(captured_landscape_2_precorrected);
+captured_landscape_2_postorrected_srgb = img_lin_to_srgb(captured_landscape_2_postcorrected);
+
+captured_landscape_2_uncorrected_srgb = imcrop(captured_landscape_2_uncorrected_srgb);
+captured_landscape_2_precorrected_srgb = imcrop(captured_landscape_2_precorrected_srgb);
+captured_landscape_2_postorrected_srgb = imcrop(captured_landscape_2_postorrected_srgb);
+
+close all;
+
+%%
+figure('name', 'Comparison');
+tl = tiledlayout(1,4);
+tl.TileSpacing = 'compact';
+
+nexttile();
+imshow(captured_landscape_2_uncorrected_srgb ./.5);
+nexttile();
+imshow(captured_landscape_2_precorrected_srgb ./.5);
+nexttile();
+imshow(imgaussfilt(original_landscape_2,6));
+nexttile();
+imshow(captured_landscape_2_postorrected_srgb ./ .5);
+
+
 %% Utility Functions
 
 function corrected_image = apply_matrix(original_image, matrix)
@@ -102,9 +160,15 @@ for y=1:height(original_image)
             rgb(3));
     end
 end
-
 end
 
+function img = apply_matrix_smart(img, matrix)
+image_vector = reshape(img, [], 3) * matrix;
+img = reshape(image_vector, size(img));
+end
+
+
+% https://docs.unrealengine.com/4.27/en-US/WorkingWithMedia/IntegratingMedia/InCameraVFX/InCameraVFXCameraCalibration/
 function matrix = calculate_calibration_matrix(red, green, blue, white)
 f = [red; green; blue];
 white_scaled = white ./ max(white);
@@ -134,9 +198,9 @@ figure('name', 'Comparison: Captured - Corrected - Original');
 tiledlayout(comparison_amount, 3);
 
 for i = 1:comparison_amount
-    disp("Captured  " + patch_names{i} + ": " + num2str(get_mean_rgb_from_patch(patch_captured.(patch_names{i})), '%.4f '));
-    disp("Corrected " + patch_names{i} + ": " + num2str(get_mean_rgb_from_patch(patch_corrected.(patch_names{i})), '%.4f '));
-    disp("Original  " + patch_names{i} + ": " + num2str(get_mean_rgb_from_patch(patch_original.(patch_names{i})), '%.4f '));
+    disp("Captured  " + patch_names{i} + ": " + num2str(get_median_rgb_from_patch(patch_captured.(patch_names{i})), '%.4f '));
+    disp("Corrected " + patch_names{i} + ": " + num2str(get_median_rgb_from_patch(patch_corrected.(patch_names{i})), '%.4f '));
+    disp("Original  " + patch_names{i} + ": " + num2str(get_median_rgb_from_patch(patch_original.(patch_names{i})), '%.4f '));
     fprintf('\n')
     
     nexttile();
@@ -186,7 +250,7 @@ for y=1:height(srgb)
 end
 end
 
-function rgb = get_mean_rgb_from_patch(img, sRGB)
+function rgb = get_median_rgb_from_patch(img, sRGB)
 if ~exist("sRGB", "var")
     sRGB = false;
 end
@@ -205,7 +269,7 @@ for x=1:length(img)
         end
     end
 end
-rgb = [mean(lin_rgb(:,:,1), 'all'), mean(lin_rgb(:,:,2), 'all'), mean(lin_rgb(:,:,3), 'all')];
+rgb = [median(lin_rgb(:,:,1), 'all'), median(lin_rgb(:,:,2), 'all'), median(lin_rgb(:,:,3), 'all')];
 end
 
 

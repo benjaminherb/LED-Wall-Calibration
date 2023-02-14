@@ -17,7 +17,7 @@ bildOhneDither = uint8(floor(bild));
  
 bildMitDitherNormal = uint8( bild + randn(size(bild)) );
 bildMitDitherGleich = uint8( bild + rand(size(bild)) );
-bildMitDitherFloydSteinberg = uint8( floyd_steinberg_dithering(double(bildOhneDither), bild) );
+bildMitDitherFloydSteinberg = uint8( floyd_steinberg_dithering(bild) );
 
 mean(bildMitDitherFloydSteinberg)
  
@@ -27,10 +27,10 @@ imwrite(bildMitDitherGleich, output_dir + 'bildMitDitherGleich.png')
 imwrite(bildMitDitherFloydSteinberg, output_dir + 'bildMitDitherFloydSteinberg.png')
 
 
-function image_dithered = floyd_steinberg_dithering(image_quantized, image_reference)
+function image_dithered = floyd_steinberg_dithering(image_reference)
 % https://en.wikipedia.org/wiki/Floyd%E2%80%93Steinberg_dithering
 
-[height, width, ~] = size(image_quantized);
+[height, width, ~] = size(image_reference);
 image_dithered = image_reference;
 
 for y = 1:height - 1
